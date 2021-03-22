@@ -4,11 +4,11 @@ name: CI
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -18,9 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Assume this is a PR build. If this is a master build, these will be overridden in the first step.
+      APP_LOCAL_SANITY_DATASET: rexona-staging-gb
+      APP_LOCAL_SITE_URL: https://deploy-preview-${{ github.event.number }}--rexona-web-en-gb-staging.netlify.app
+      # Other APP_LOCAL_* env vars would go here
       BUILD_ID: pr-${{ github.event.number }}
-      NETLIFY_STAGING_DEPLOY_ALIAS: deploy-preview-${{ github.event.number }}
-      NETLIFY_STAGING_DEPLOY_URL: https://deploy-preview-${{ github.event.number }}--rexona-web-en-gb-staging.netlify.app
+      NETLIFY_DEPLOY_ALIAS: deploy-preview-${{ github.event.number }}
 
     steps:
 
@@ -28,9 +30,9 @@ jobs:
         if: github.ref == 'refs/heads/master'
         shell: bash
         run: |
+          echo "APP_LOCAL_SITE_URL=https://rexona-web-en-gb-staging.netlify.app" >> $GITHUB_ENV
           echo "BUILD_ID=master" >> $GITHUB_ENV
-          echo "NETLIFY_STAGING_DEPLOY_ALIAS=" >> $GITHUB_ENV
-          echo "NETLIFY_STAGING_DEPLOY_URL=https://rexona-web-en-gb-staging.netlify.app" >> $GITHUB_ENV
+          echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
 
       - name: Override job environment variables if running on release branch
         if: /refs\/heads\/(release.*$)/.test(github.ref)
@@ -38,9 +40,9 @@ jobs:
           BRANCH_NAME: ${{ github.ref.match(/refs\/heads\/(release.*$)/)[1] }}
         shell: bash
         run: |
+          echo "APP_LOCAL_SANITY_DATASET=rexona-prod-gb" >> $GITHUB_ENV
           echo "BUILD_ID=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
-          echo "NETLIFY_STAGING_DEPLOY_ALIAS=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
-          echo "NETLIFY_STAGING_DEPLOY_URL=https://rexona-web-en-gb-staging.netlify.app" >> $GITHUB_ENV
+          # TODO others
 
       - uses: actions/checkout@v2
       - name: Build website
