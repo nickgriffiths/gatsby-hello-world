@@ -36,7 +36,6 @@ jobs:
 
       - name: Override job environment variables if running on release branch
         if: startsWith( github.ref, '/refs/heads/release-' )
-        run: echo "TEST this is a release branch"
         env:
           BRANCH_NAME: ${{ github.ref }}.match(/refs\/heads\/(release.*$)/)[1]
         shell: bash
