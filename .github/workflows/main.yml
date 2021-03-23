@@ -35,7 +35,7 @@ jobs:
           echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
 
       - name: Override job environment variables if running on release branch
-        if: /refs\/heads\/(release.*$)/.test(github.ref)
+        if: ${{ /refs\/heads\/(release.*$)/.test(github.ref) }}
         run: echo "TEST this is a release branch"
       #   env:
       #     BRANCH_NAME: ${{ github.ref.match(/refs\/heads\/(release.*$)/)[1] }}
