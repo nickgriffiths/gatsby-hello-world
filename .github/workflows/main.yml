@@ -102,9 +102,13 @@ jobs:
         if: ${{ github.event.number && (success() || steps.github-pages.outcome == 'success') }} # We can only create links if test results were uploaded
         run: echo "comment on PR"
 
+  create-release-branch:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/master'
+    steps:
       - name: Create release branch approval
-        if: github.ref == 'refs/heads/master'
-        environment: production
         run: |
           BRANCH_NAME=release-$(date -u +%F-%H-%M)
           git branch ${BRANCH_NAME}
