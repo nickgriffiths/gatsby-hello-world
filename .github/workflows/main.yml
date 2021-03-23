@@ -1,4 +1,4 @@
-name: CI
+name: Web | en_GB | Build and Deploy
 
 on:
   push:
@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: Build & deploy
     env:
       # Assume this is a PR build. If this is a master build, these will be overridden in the first step.
       APP_LOCAL_SANITY_DATASET: rexona-staging-gb
@@ -18,10 +19,11 @@ jobs:
       # Other APP_LOCAL_* env vars would go here
       BUILD_ID: pr-${{ github.event.number }}
       NETLIFY_DEPLOY_ALIAS: deploy-preview-${{ github.event.number }}
+      NETLIFY_SITE_ID: TODO-xxxxxxx-yyyyyyyy-zzzzzzz
 
     steps:
 
-      - name: Override job environment variables if running on master branch
+      - name: Override job environment variables (master branch only)
         if: github.ref == 'refs/heads/master'
         shell: bash
         run: |
@@ -29,7 +31,7 @@ jobs:
           echo "BUILD_ID=master" >> $GITHUB_ENV
           echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
 
-      - name: Override job environment variables if running on release branch
+      - name: Override job environment variables (release branches only)
         if: startsWith( github.ref, 'refs/heads/release-' )
         shell: bash
         run: |
@@ -38,15 +40,22 @@ jobs:
           BRANCH_NAME=$(echo ${{ github.ref }} | grep -o 'release-.*$')
           echo "BUILD_ID=${BRANCH_NAME}" >> $GITHUB_ENV
           echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
+          echo "NETLIFY_SITE_ID=85c178d1-fb9a-438c-b058-a0ace44a248d" >> $GITHUB_ENV
 
-      - name: checkout
-        run: echo "checkout the code"
+      - uses: actions/checkout@v2
 
       - name: Build website
         run: echo "Build website here using dataset ${APP_LOCAL_SANITY_DATASET}, URL ${APP_LOCAL_SITE_URL}"
         
-      - name: Deploy to staging
-        run: echo "Deploy to Netlify instance here using build ID ${BUILD_ID}, alias ${NETLIFY_DEPLOY_ALIAS}"
+      - name: Deploy to Netlify
+        run: echo "Deploy to Netlify instance here using build ID ${BUILD_ID}, site ID ${NETLIFY_SITE_ID}, alias ${NETLIFY_DEPLOY_ALIAS}"
+
+      - name: Tag as latest production release (release branches only)
+        if: startsWith( github.ref, 'refs/heads/release-' )
+        shell: bash
+        run: |
+          git tag -f production-latest
+          git push -f -u origin production-latest
 
       - name: Create test-results directory
         id: create-test-results
@@ -100,6 +109,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: production
+    name: Create release branch (master branch only)
     if: github.ref == 'refs/heads/master'
     steps:
 
@@ -107,6 +117,7 @@ jobs:
 
       - name: Create release branch
         id: create-branch
+        shell: bash
         run: |
           BRANCH_NAME=release-$(date -u +%F-%H-%M)
           git branch ${BRANCH_NAME}
@@ -116,6 +127,6 @@ jobs:
       - name: Create workflow_dispatch event
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: CI  # This workflow
+          workflow: Web | en_GB | Build and Deploy
           token: ${{ secrets.CREATE_RELEASE_BRANCH_TOKEN }}
           ref: ${{ steps.create-branch.outputs.branch_name }}
