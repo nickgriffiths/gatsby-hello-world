@@ -41,13 +41,71 @@ jobs:
         shell: bash
         run: |
           echo "APP_LOCAL_SANITY_DATASET=rexona-prod-gb" >> $GITHUB_ENV
+          echo "APP_LOCAL_SITE_URL=https://www.suredeodorant.co.uk" >> $GITHUB_ENV
           echo "BUILD_ID=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
-          # TODO others
+          echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v2
+      - name: checkout
+        run: echo "checkout the code"
+
       - name: Build website
-        run: echo "Build website here"
+        run: echo "Build website here using dataset ${APP_LOCAL_SANITY_DATASET}, URL ${APP_LOCAL_SITE_URL}"
+        
       - name: Deploy to staging
-        run: echo "Deploy to staging Netlify instance here"
-      - name: Run tests
-        run: echo "Tests go here"
+        run: echo "Deploy to Netlify instance here using build ID ${BUILD_ID}, alias ${NETLIFY_DEPLOY_ALIAS}"
+
+      - name: Create test-results directory
+        id: create-test-results
+        run: mkdir -p test-results
+
+      - name: Run Jest tests
+        id: jest
+        run: echo "Run jest tests here"
+      
+      - name: Lighthouse tests
+        run: echo "Run Lighthouse tests here"
+
+      - name: Run Structured Data Testing Tool
+        run: echo "Run SDTT tests here using build ID ${BUILD_ID}, URL ${APP_LOCAL_SITE_URL}"
+
+      - name: Run Cypress tests
+        id: cypress
+        run: echo "Run tests here using URL ${APP_LOCAL_SITE_URL}"
+
+      - name: Merge Cypress test results
+        if: ${{ success() || steps.cypress.outcome == 'failure' }}
+        run: echo "Run report:cypress:merge"
+      - name: Generate HTML report
+        if: ${{ success() || steps.cypress.outcome == 'failure' }}
+        run: echo "Run report:cypress:generate"
+      - name: Upload Cypress test artifacts
+        if: ${{ success() || steps.cypress.outcome == 'failure' }}
+        run: echo "Run actions/upload-artifact@v1"
+      - name: Copy Cypress report into test-results directory for later upload to GitHub Pages
+        if: ${{ success() || steps.cypress.outcome == 'failure' }}
+        run: echo "Run cp -R workspaces/web/en_GB/cypress-results/report test-results"
+
+      - name: Run Pa11y tests
+        id: pa11y
+        run: echo "Run pa11y tests"
+
+      - name: Generate Pa11y HTML report
+        if: ${{ success() || steps.pa11y.outcome == 'failure' }}
+        run: echo "pa11y report"
+
+      - name: Deploy all test results to GitHub Pages
+        id: github-pages
+        if: ${{ success() || steps.create-test-results.outcome == 'success' }} # If we ran at least one set of tests
+        run: echo "upload test results"
+
+      - name: Comment on PR page with links to test results
+        if: ${{ github.event.number && (success() || steps.github-pages.outcome == 'success') }} # We can only create links if test results were uploaded
+        run: echo "comment on PR"
+
+      - name: Create release branch approval
+        if: github.ref == 'refs/heads/master'
+        environment: production
+        run: |
+          BRANCH_NAME=release-$(date -u +%F-%H-%M)
+          git branch ${BRANCH_NAME}
+          git push -u origin ${BRANCH_NAME}
