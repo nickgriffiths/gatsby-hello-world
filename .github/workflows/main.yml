@@ -34,16 +34,16 @@ jobs:
           echo "BUILD_ID=master" >> $GITHUB_ENV
           echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
 
-      - name: Override job environment variables if running on release branch
-        if: /refs\/heads\/(release.*$)/.test(github.ref)
-        env:
-          BRANCH_NAME: ${{ github.ref.match(/refs\/heads\/(release.*$)/)[1] }}
-        shell: bash
-        run: |
-          echo "APP_LOCAL_SANITY_DATASET=rexona-prod-gb" >> $GITHUB_ENV
-          echo "APP_LOCAL_SITE_URL=https://www.suredeodorant.co.uk" >> $GITHUB_ENV
-          echo "BUILD_ID=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
-          echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
+      # - name: Override job environment variables if running on release branch
+      #   if: /refs\/heads\/(release.*$)/.test(github.ref)
+      #   env:
+      #     BRANCH_NAME: ${{ github.ref.match(/refs\/heads\/(release.*$)/)[1] }}
+      #   shell: bash
+      #   run: |
+      #     echo "APP_LOCAL_SANITY_DATASET=rexona-prod-gb" >> $GITHUB_ENV
+      #     echo "APP_LOCAL_SITE_URL=https://www.suredeodorant.co.uk" >> $GITHUB_ENV
+      #     echo "BUILD_ID=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+      #     echo "NETLIFY_DEPLOY_ALIAS=" >> $GITHUB_ENV
 
       - name: checkout
         run: echo "checkout the code"
