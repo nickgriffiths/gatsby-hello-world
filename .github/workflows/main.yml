@@ -108,6 +108,7 @@ jobs:
     environment: production
     if: github.ref == 'refs/heads/master'
     steps:
+      - uses: actions/checkout@v2
       - name: Create release branch approval
         run: |
           BRANCH_NAME=release-$(date -u +%F-%H-%M)
