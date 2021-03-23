@@ -102,9 +102,20 @@ jobs:
     environment: production
     if: github.ref == 'refs/heads/master'
     steps:
+
       - uses: actions/checkout@v2
-      - name: Create release branch approval
+
+      - name: Create release branch
+        id: create-branch
         run: |
           BRANCH_NAME=release-$(date -u +%F-%H-%M)
           git branch ${BRANCH_NAME}
           git push -u origin ${BRANCH_NAME}
+          echo "::set-output name=branch_name::${BRANCH_NAME}"
+
+      - name: Create workflow_dispatch event
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: CI  # This workflow
+          token: ${{ secrets.CREATE_RELEASE_BRANCH_TOKEN }}
+          ref: ${{ steps.create_branch.outputs.branch_name }}
