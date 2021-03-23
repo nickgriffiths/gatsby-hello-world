@@ -118,4 +118,4 @@ jobs:
         with:
           workflow: CI  # This workflow
           token: ${{ secrets.CREATE_RELEASE_BRANCH_TOKEN }}
-          ref: ${{ steps.create_branch.outputs.branch_name }}
+          ref: ${{ steps.create-branch.outputs.branch_name }}
