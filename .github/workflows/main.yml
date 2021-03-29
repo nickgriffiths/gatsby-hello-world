@@ -127,6 +127,6 @@ jobs:
       - name: Create workflow_dispatch event
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: Web | en_GB | Build and Deploy
+          workflow: ${{ github.workflow }}
           token: ${{ secrets.CREATE_RELEASE_BRANCH_TOKEN }}
           ref: ${{ steps.create-branch.outputs.branch_name }}
