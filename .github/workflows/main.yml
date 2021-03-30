@@ -12,6 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build & deploy
+    continue-on-error: true
     env:
       # Assume this is a PR build. If this is a master build, these will be overridden in the first step.
       APP_LOCAL_SANITY_DATASET: rexona-staging-gb
@@ -90,7 +91,7 @@ jobs:
 
       - name: Run Pa11y tests
         id: pa11y
-        run: echo "Run pa11y tests"
+        run: exit 1
 
       - name: Generate Pa11y HTML report
         if: ${{ success() || steps.pa11y.outcome == 'failure' }}
